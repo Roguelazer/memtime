@@ -156,7 +156,17 @@ prettified output.
 
 =head1 BUGS
 
+=over 4
+
+=item *
+
 Assumes page size is always 4k instead of checking like a reasonable program ought to.
+
+=item *
+
+Isn't terribly good at handling programs that exit quickly (may infinite-loop). Don't do that.
+
+=back
 
 =head1 AUTHOR
 
