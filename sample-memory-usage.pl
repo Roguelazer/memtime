@@ -151,7 +151,7 @@ Sample data every I<INT> microseconds (default 100000 = 0.1 seconds)
 
 B<sample_memory_usage> takes either a PID or a command to execute and
 samples periodically to collect memory usage stats. Somewhat similar to
-time(1), but in more detail. Use with graph_memory_usage(1) to produce
+time(1), but in more detail. Use with graph-memory-usage(1) to produce
 prettified output.
 
 =head1 BUGS
@@ -174,6 +174,6 @@ James Brown <jbrown@yelp.com>
 
 =head1 SEE ALSO
 
-graph_memory_usage(1), time(1)
+graph-memory-usage(1), time(1)
 
 =cut
