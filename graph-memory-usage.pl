@@ -17,6 +17,7 @@ pod2usage(-exitstatus => 0, -verbose=>2) if $man;
 pod2usage(1) if ($argc < 2);
 
 my $datafile = $ARGV[0];
+my $datafileout = $datafile . ".out";
 my $outfile = $ARGV[1];
 my $labelsfile = $ARGV[2];
 my $labelsfileout;
@@ -25,6 +26,7 @@ if ($labelsfile) {
 }
 my $max = 0;
 my $min = 1000000;
+my $mintime = time();
 my @labels = ();
 open(DF, "<$datafile");
 while (<DF>) {
@@ -35,8 +37,20 @@ while (<DF>) {
     if ($data[1] < $min) {
         $min = $data[1];
     }
+	if ($data[0] < $mintime) {
+		$mintime = $data[0];
+	}
 }
 close(DF);
+open(DF, "<$datafile");
+open(DFO, ">$datafileout");
+while (<DF>) {
+    my @data = split(/,/);
+	my $time = $data[0] - $mintime;
+	print DFO "$time,$data[1],$data[2]";
+}
+close(DF);
+close(DFO);
 $max /= 1024;
 $min /= 1024;
 if ($labelsfile) {
@@ -46,6 +60,7 @@ if ($labelsfile) {
     while(<LF>) {
         my @data = split(/,/);
         my $height;
+		my $time = $data[0] - $mintime;
         switch ($count % 3) {
             case 0 {
                 $height = $max * 1.02;
@@ -57,8 +72,8 @@ if ($labelsfile) {
                 $height = $max * 1.10;
             }
         }
-        print LFP "$data[0],$height,$data[1]\n";
-        push(@labels, int($data[0]));
+        print LFP "$time,$height,$data[1]\n";
+        push(@labels, int($time));
         $count += 1;
     }
     close(LFP);
@@ -71,8 +86,8 @@ print {$GP} "set term postscript color\n";
 print {$GP} "set out '$outfile'\n";
 print {$GP} "set datafile separator ','\n";
 print {$GP} "set title '$datafile'\n";
-print {$GP} "set xlabel 'Time'\n";
-print {$GP} "set ylabel 'Memory Usage (kB)'\n";
+print {$GP} "set xlabel 'Running Time'\n";
+print {$GP} "set ylabel 'Memory Usage (MB)'\n";
 print {$GP} "set key below\n";
 for my $label (@labels) {
     print {$GP} "set arrow from $label,$min to $label,$max nohead lw 0.1\n";
@@ -80,7 +95,7 @@ for my $label (@labels) {
 #print {$GP} "set xdata time\n";
 #print {$GP} "set timefmt \"%s\"\n";
 #print {$GP} "set format x \"%H:%M:%S\"\n";
-print {$GP} "plot '$datafile' using 1:(\$2/1024) title 'vsz' with lines, '$datafile' using 1:(\$3/1024) title 'rss' with lines";
+print {$GP} "plot '$datafileout' using 1:(\$2/1024) title 'vsz' with lines, '$datafileout' using 1:(\$3/1024) title 'rss' with lines";
 if ($labelsfile) {
     print {$GP} ", '$labelsfileout' using 1:2:3 with labels font \"Courier,8\" notitle";
 }
@@ -91,6 +106,7 @@ close($GP);
 if ($labelsfile) {
     unlink($labelsfileout);
 }
+unlink($datafileout);
 __END__
 =encoding utf8
 
