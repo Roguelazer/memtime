@@ -9,8 +9,16 @@ use Pod::Usage;
 
 my $help = 0;
 my $man = 0;
+my $title;
+my $y2label = "Y2";
+my $y2title = "y2";
 my $argc = $#ARGV + 1;
+my $y2file;
 GetOptions('help|?' => \$help,
+    'title=s' => \$title,
+    'y2label=s' => \$y2label,
+    'y2title=s' => \$y2title,
+    'y2file=s' => \$y2file,
     'man' => \$man) or pod2usage(2);
 pod2usage(1) if $help or ($argc < 1);
 pod2usage(-exitstatus => 0, -verbose=>2) if $man;
@@ -18,11 +26,18 @@ pod2usage(1) if ($argc < 2);
 
 my $datafile = $ARGV[0];
 my $datafileout = $datafile . ".out";
+if (!$title) {
+    $title = $datafile;
+}
 my $outfile = $ARGV[1];
 my $labelsfile = $ARGV[2];
 my $labelsfileout;
 if ($labelsfile) {
     $labelsfileout = $labelsfile . ".out";   
+}
+my $y2fileout;
+if ($y2file) {
+    $y2fileout = $y2file . ".out";
 }
 my $max = 0;
 my $min = 1000000;
@@ -37,17 +52,40 @@ while (<DF>) {
     if ($data[1] < $min) {
         $min = $data[1];
     }
-	if ($data[0] < $mintime) {
-		$mintime = $data[0];
-	}
+    if ($data[0] < $mintime) {
+        $mintime = $data[0];
+    }
 }
 close(DF);
+
+if ($labelsfile) {
+    open(LF, "<$labelsfile");
+    while (<LF>) {
+        my @data = split(/,/);
+        if ($data[0] < $mintime) {
+            $mintime = $data[0];
+        }
+    }
+    close(LF);
+}
+if ($y2file) {
+    open(YF, "<$y2file");
+    while (<YF>) {
+        my @data = split(/,/);
+        if ($data[0] < $mintime) {
+            $mintime = $data[0];
+        }
+    }
+    close(YF);
+}
+
 open(DF, "<$datafile");
 open(DFO, ">$datafileout");
 while (<DF>) {
+    chomp;
     my @data = split(/,/);
-	my $time = $data[0] - $mintime;
-	print DFO "$time,$data[1],$data[2]";
+    my $time = $data[0] - $mintime;
+    print DFO "$time,$data[1],$data[2]\n";
 }
 close(DF);
 close(DFO);
@@ -58,9 +96,10 @@ if ($labelsfile) {
     open(LFP, ">$labelsfileout");
     my $count = 0;
     while(<LF>) {
+        chomp;
         my @data = split(/,/);
         my $height;
-		my $time = $data[0] - $mintime;
+        my $time = $data[0] - $mintime;
         switch ($count % 3) {
             case 0 {
                 $height = $max * 1.02;
@@ -80,14 +119,32 @@ if ($labelsfile) {
     close(LF);
 }
 
+if ($y2file) {
+    open(YF, "<$y2file");
+    open(YFO, ">$y2fileout");
+    while(<YF>) {
+        chomp;
+        my @data = split(/,/);
+        my $time = $data[0] - $mintime;
+        print YFO "$time, $data[1]\n";
+    }
+    close(YF);
+    close(YFO);
+}
+
 open(my $GP, "|/usr/bin/gnuplot -persist") or die "no gnuplot";
 $GP->autoflush(1);
 print {$GP} "set term postscript color\n";
 print {$GP} "set out '$outfile'\n";
 print {$GP} "set datafile separator ','\n";
-print {$GP} "set title '$datafile'\n";
+print {$GP} "set title '$title\n";
 print {$GP} "set xlabel 'Running Time'\n";
 print {$GP} "set ylabel 'Memory Usage (MB)'\n";
+if ($y2file) {
+    print {$GP} "set y2label '$y2label'\n";
+    print {$GP} "set ytics nomirror\n";
+    print {$GP} "set y2tics nomirror\n";
+}
 print {$GP} "set key below\n";
 for my $label (@labels) {
     print {$GP} "set arrow from $label,$min to $label,$max nohead lw 0.1\n";
@@ -99,8 +156,8 @@ print {$GP} "plot '$datafileout' using 1:(\$2/1024) title 'vsz' with lines, '$da
 if ($labelsfile) {
     print {$GP} ", '$labelsfileout' using 1:2:3 with labels font \"Courier,8\" notitle";
 }
-else {
-    print {$GP} "\n";
+if ($y2file) {
+    print {$GP} ", '$y2fileout' using 1:2 axis x1y2 title '$y2title' with lines";
 }
 close($GP);
 if ($labelsfile) {
@@ -119,12 +176,32 @@ graph-memory-usage: graph memory usage for a process
 graph-memory-usage F<data_file> F<output_file> [F<label_file>]
 
   Options:
+    --title TITLE   Title for the graph
+    --y2title TITLE Title for the Y2 axis (only valid of --y2file passed)
+    --y2label LABEL Label for the Y2 axis (only valid if --y2file passed)
+    --y2file FILE   File to graph on the Y2 axis
     --help          Brief help message
     --man           Full documentation
 
 =head1 OPTIONS
 
 =over 8
+
+=item B<--title TITLE>
+
+Title for the graph (defaults to the input file name)
+
+=item B<--y2file FILENAME>
+
+A file to graph on the y2 axis
+
+=item B<--y2title Y2TITLE>
+
+Title for the y2 line. Only valid with --y2file
+
+=item B<--y2label Y2LABEL>
+
+Label for the y2 axis. Only valid with --y2file
 
 =item B<--help>
 
@@ -148,6 +225,9 @@ at that time. All sizes should be in bytes.
 
 The format of the label file is CSV with two columns. The first column should be a Unix timestamp.
 The second should be the label (string-escaped and double-quoted) to place at that time.
+
+The optional fourth argument is a file to use for the Y2 axis. The first column in this file should
+be a Unix timestamp; the second should be a numerical value.
 
 =head1 EXAMPLE
 
@@ -212,3 +292,5 @@ James Brown <jbrown@yelp.com>
 sample_memory_usage(1), gnuplot(1)
 
 =cut
+
+# vim: set expandtab ts=4 sw=4 sts=0:
