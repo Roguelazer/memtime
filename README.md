@@ -12,3 +12,11 @@ Usage
 There are two components of **memtime**: *sample-memory-usage* and *graph-memory-usage*. *sample-memory-usage*
 actually gathers the data, *graph-memory-usage* uses [gnuplot](http://www.gnuplot.info/) to present it
 in a user-friendly manner. Both have man pages accessible with the `--man` flag, including example usage.
+
+Example
+-------
+There's some example code in `sample/`. Run the script `run.sh` from a reasonably well-
+set-up Linux machine and you should see a file `test.pdf`. A low-quality version of it
+is displayed below for your viewing pleasure:
+
+![sample output](http://files.roguelazer.com/memtime_sample.png)
