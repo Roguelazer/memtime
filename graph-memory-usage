@@ -215,8 +215,8 @@ Print the man page and exit
 
 =head1 DESCRIPTION
 
-B<graph-memory-usage> produces prettified output from sample_memory_usage(1). It takes
-three arguments: a data file (as output by sample_memory_usage), the name of the file to
+B<graph-memory-usage> produces prettified output from sample-memory-usage(1). It takes
+three arguments: a data file (as output by sample-memory-usage), the name of the file to
 write to (should be a .ps), and (optionally) another file containing labels.
 
 The format of the data file is CSV with three columns. The first column should be a
@@ -289,7 +289,7 @@ James Brown <jbrown@yelp.com>
 
 =head1 SEE ALSO
 
-sample_memory_usage(1), gnuplot(1)
+sample-memory-usage(1), gnuplot(1)
 
 =cut
 

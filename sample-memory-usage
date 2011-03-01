@@ -108,11 +108,11 @@ main()
 __END__
 =head1 NAME
 
-sample_memory_usage: Get the memory usage stats for a process
+sample-memory-usage: Get the memory usage stats for a process
 
 =head1 SYNOPSIS
 
-sample_memory_usage [options] (PID | command)
+sample-memory-usage [options] (PID | command)
 
   Options:
     --help          Brief help message
@@ -149,7 +149,7 @@ Sample data every I<INT> microseconds (default 100000 = 0.1 seconds)
 
 =head1 DESCRIPTION
 
-B<sample_memory_usage> takes either a PID or a command to execute and
+B<sample-memory-usage> takes either a PID or a command to execute and
 samples periodically to collect memory usage stats. Somewhat similar to
 time(1), but in more detail. Use with graph-memory-usage(1) to produce
 prettified output.
