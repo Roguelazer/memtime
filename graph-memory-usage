@@ -175,6 +175,8 @@ graph-memory-usage: graph memory usage for a process
 
 graph-memory-usage F<data_file> F<output_file> [F<label_file>]
 
+Note: Output file will be a PostScript file.
+
   Options:
     --title TITLE   Title for the graph
     --y2title TITLE Title for the Y2 axis (only valid of --y2file passed)
